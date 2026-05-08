@@ -12,7 +12,7 @@ namespace FloatyNotes.Menu;
 
 internal class FloatingNotesController : IInitializable, IDisposable
 {
-    private const int NoteCount = 60;
+    private const int NoteCount = 32;
 
     private GameObject? root;
 
@@ -41,52 +41,60 @@ internal class FloatingNotesController : IInitializable, IDisposable
 internal class FloatingNotesField : MonoBehaviour
 {
     private const float DefaultNoteScale = 1f;
-    private const float FloorRestingNoteCenterY = 0.5f;
-    private const int NotesPerPile = 8;
+    private const float FloorRestingNoteCenterY = 0.82f;
+    private const int NotesPerPile = 5;
 
     private const string NormalGameNoteAddress =
         "Packages/com.beatgames.beatsaber.main.core/Prefabs/SongElements/Notes/NormalGameNote.prefab";
 
     private static readonly Vector3[] PileCenters =
     {
-        new(-6.35f, FloorRestingNoteCenterY, 1.85f),
-        new(-3.15f, FloorRestingNoteCenterY, 3.25f),
-        new(0.0f, FloorRestingNoteCenterY, 2.65f),
-        new(3.25f, FloorRestingNoteCenterY, 3.1f),
-        new(6.15f, FloorRestingNoteCenterY, 4.55f)
+        new(-7.8f, FloorRestingNoteCenterY, 4.8f),
+        new(-4.8f, FloorRestingNoteCenterY, 9.4f),
+        new(4.9f, FloorRestingNoteCenterY, 9.2f),
+        new(7.9f, FloorRestingNoteCenterY, 5.4f)
     };
 
     private static readonly float[] PileYawAngles =
     {
-        -12f,
-        8f,
-        -4f,
-        13f,
-        -16f
+        -18f,
+        16f,
+        -14f,
+        20f
     };
 
     private static readonly Vector3[] PileLocalOffsets =
     {
-        new(-1.18f, 0f, -0.18f),
-        new(-0.42f, 0f, 0.1f),
-        new(0.38f, 0f, -0.08f),
-        new(1.12f, 0f, 0.16f),
-        new(-0.82f, 0f, 0.84f),
-        new(0.04f, 0f, 0.9f),
-        new(0.76f, 0.64f, 0.54f),
-        new(-0.12f, 0.68f, 0.36f)
+        new(-1.45f, 0f, -0.18f),
+        new(-0.58f, 0f, 0.08f),
+        new(0.38f, 0f, -0.1f),
+        new(1.28f, 0f, 0.18f),
+        new(0.02f, 0.45f, 0.72f)
     };
 
     private static readonly Vector3[] PileBaseRotations =
     {
-        new(-1f, -18f, 2f),
-        new(0f, 8f, -1f),
-        new(1f, 29f, 1f),
-        new(-2f, 52f, -2f),
-        new(2f, -35f, -1f),
-        new(-1f, 18f, 2f),
-        new(-9f, 71f, 14f),
-        new(11f, -56f, -13f)
+        new(0f, -28f, 0f),
+        new(0f, 3f, 0f),
+        new(0f, 31f, 0f),
+        new(0f, 63f, 0f),
+        new(-7f, 12f, 8f)
+    };
+
+    private static readonly Vector3[] FloatingAnchors =
+    {
+        new(-10.4f, 1.9f, 4.2f),
+        new(-9.1f, 3.65f, 7.8f),
+        new(-6.4f, 5.0f, 11.2f),
+        new(-2.4f, 4.65f, 13.8f),
+        new(2.6f, 4.35f, 13.5f),
+        new(6.2f, 5.0f, 11.0f),
+        new(9.2f, 3.55f, 7.8f),
+        new(10.6f, 1.8f, 4.5f),
+        new(-7.4f, 2.4f, 13.6f),
+        new(-1.1f, 2.95f, 10.6f),
+        new(1.3f, 2.75f, 10.8f),
+        new(7.5f, 2.35f, 13.5f)
     };
 
     private static readonly Color[] LightPalette =
@@ -245,24 +253,13 @@ internal class FloatingNotesField : MonoBehaviour
 
     private static Vector3 RandomFloatingMenuPosition(int index)
     {
-        var zone = index % 12;
-        var side = index % 2 == 0 ? -1f : 1f;
+        var anchor = FloatingAnchors[index % FloatingAnchors.Length];
+        var jitter = new Vector3(
+            Random.Range(-0.5f, 0.5f),
+            Random.Range(-0.3f, 0.35f),
+            Random.Range(-0.55f, 0.55f));
 
-        return zone switch
-        {
-            0 => new Vector3(side * Random.Range(6.2f, 8.6f), Random.Range(0.7f, 3.0f), Random.Range(1.8f, 4.4f)),
-            1 => new Vector3(side * Random.Range(4.2f, 7.1f), Random.Range(3.0f, 4.75f), Random.Range(2.5f, 6.8f)),
-            2 => new Vector3(Random.Range(-2.4f, 2.4f), Random.Range(3.25f, 5.0f), Random.Range(2.0f, 4.6f)),
-            3 => new Vector3(Random.Range(-6.8f, 6.8f), Random.Range(2.55f, 4.55f), Random.Range(5.8f, 9.0f)),
-            4 => new Vector3(side * Random.Range(2.2f, 4.9f), Random.Range(0.45f, 2.25f), Random.Range(6.0f, 9.4f)),
-            5 => new Vector3(side * Random.Range(7.2f, 9.6f), Random.Range(-0.1f, 1.75f), Random.Range(4.8f, 8.6f)),
-            6 => new Vector3(Random.Range(-7.6f, 7.6f), Random.Range(1.3f, 2.8f), Random.Range(8.2f, 11.2f)),
-            7 => new Vector3(side * Random.Range(1.4f, 3.4f), Random.Range(2.1f, 3.85f), Random.Range(1.5f, 3.5f)),
-            8 => new Vector3(side * Random.Range(5.0f, 7.6f), Random.Range(2.4f, 4.25f), Random.Range(7.2f, 10.5f)),
-            9 => new Vector3(Random.Range(-4.4f, 4.4f), Random.Range(0.7f, 2.1f), Random.Range(4.6f, 7.2f)),
-            10 => new Vector3(side * Random.Range(3.4f, 6.4f), Random.Range(-0.25f, 1.1f), Random.Range(6.8f, 10.0f)),
-            _ => new Vector3(Random.Range(-8.0f, 8.0f), Random.Range(3.8f, 5.3f), Random.Range(6.4f, 10.8f))
-        };
+        return anchor + jitter;
     }
 
     private static Vector3 RandomFloatingMenuRotation(Vector3 anchor)
