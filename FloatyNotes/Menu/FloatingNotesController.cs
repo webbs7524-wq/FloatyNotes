@@ -12,7 +12,7 @@ namespace FloatyNotes.Menu;
 
 internal class FloatingNotesController : IInitializable, IDisposable
 {
-    private const int NoteCount = 32;
+    private const int NoteCount = 28;
 
     private GameObject? root;
 
@@ -41,7 +41,7 @@ internal class FloatingNotesController : IInitializable, IDisposable
 internal class FloatingNotesField : MonoBehaviour
 {
     private const float DefaultNoteScale = 1f;
-    private const float FloorRestingNoteCenterY = 0.82f;
+    private const float FloorRestingNoteCenterY = 0.62f;
     private const int NotesPerPile = 5;
 
     private const string NormalGameNoteAddress =
@@ -49,52 +49,48 @@ internal class FloatingNotesField : MonoBehaviour
 
     private static readonly Vector3[] PileCenters =
     {
-        new(-7.8f, FloorRestingNoteCenterY, 4.8f),
-        new(-4.8f, FloorRestingNoteCenterY, 9.4f),
-        new(4.9f, FloorRestingNoteCenterY, 9.2f),
-        new(7.9f, FloorRestingNoteCenterY, 5.4f)
+        new(2.15f, FloorRestingNoteCenterY, 5.65f),
+        PositionOnMenuRing(3.45f, 138f, FloorRestingNoteCenterY),
+        PositionOnMenuRing(3.45f, 222f, FloorRestingNoteCenterY),
+        new(-2.15f, FloorRestingNoteCenterY, 5.65f)
     };
 
-    private static readonly float[] PileYawAngles =
+    private static readonly float[] PileFootprintYawOffsets =
     {
-        -18f,
-        16f,
-        -14f,
-        20f
+        -10f,
+        10f,
+        -10f,
+        10f
     };
 
     private static readonly Vector3[] PileLocalOffsets =
     {
-        new(-1.45f, 0f, -0.18f),
-        new(-0.58f, 0f, 0.08f),
-        new(0.38f, 0f, -0.1f),
-        new(1.28f, 0f, 0.18f),
-        new(0.02f, 0.45f, 0.72f)
+        new(-1.25f, 0f, -0.15f),
+        new(-0.35f, 0f, 0.18f),
+        new(0.58f, 0f, -0.1f),
+        new(1.45f, 0f, 0.22f),
+        new(0.08f, 0f, 1.08f)
     };
 
     private static readonly Vector3[] PileBaseRotations =
     {
-        new(0f, -28f, 0f),
-        new(0f, 3f, 0f),
-        new(0f, 31f, 0f),
-        new(0f, 63f, 0f),
-        new(-7f, 12f, 8f)
+        new(0f, -18f, 0f),
+        new(0f, -6f, 0f),
+        new(0f, 8f, 0f),
+        new(0f, 22f, 0f),
+        new(0f, 2f, 0f)
     };
 
     private static readonly Vector3[] FloatingAnchors =
     {
-        new(-10.4f, 1.9f, 4.2f),
-        new(-9.1f, 3.65f, 7.8f),
-        new(-6.4f, 5.0f, 11.2f),
-        new(-2.4f, 4.65f, 13.8f),
-        new(2.6f, 4.35f, 13.5f),
-        new(6.2f, 5.0f, 11.0f),
-        new(9.2f, 3.55f, 7.8f),
-        new(10.6f, 1.8f, 4.5f),
-        new(-7.4f, 2.4f, 13.6f),
-        new(-1.1f, 2.95f, 10.6f),
-        new(1.3f, 2.75f, 10.8f),
-        new(7.5f, 2.35f, 13.5f)
+        PositionOnMenuRing(7.0f, 0f, 2.15f),
+        PositionOnMenuRing(7.65f, 45f, 3.65f),
+        PositionOnMenuRing(8.15f, 90f, 4.75f),
+        PositionOnMenuRing(7.55f, 135f, 3.7f),
+        PositionOnMenuRing(6.9f, 180f, 2.1f),
+        PositionOnMenuRing(7.55f, 225f, 3.55f),
+        PositionOnMenuRing(8.15f, 270f, 4.65f),
+        PositionOnMenuRing(7.65f, 315f, 3.6f)
     };
 
     private static readonly Color[] LightPalette =
@@ -233,10 +229,11 @@ internal class FloatingNotesField : MonoBehaviour
             var pileIndex = index / NotesPerPile;
             var pileNoteIndex = index % NotesPerPile;
             var center = PileCenters[pileIndex];
-            var pileYaw = PileYawAngles[pileIndex];
-            var offset = RotateAroundY(PileLocalOffsets[pileNoteIndex], pileYaw);
-            var jitter = new Vector3(Random.Range(-0.06f, 0.06f), 0f, Random.Range(-0.06f, 0.06f));
-            var anchor = center + offset + RotateAroundY(jitter, pileYaw);
+            var pileYaw = YawTowardMenuCenter(center);
+            var footprintYaw = pileYaw + PileFootprintYawOffsets[pileIndex];
+            var offset = RotateAroundY(PileLocalOffsets[pileNoteIndex], footprintYaw);
+            var jitter = new Vector3(Random.Range(-0.025f, 0.025f), 0f, Random.Range(-0.025f, 0.025f));
+            var anchor = center + offset + RotateAroundY(jitter, footprintYaw);
             var baseRotation = PileBaseRotations[pileNoteIndex];
             var rotation = new Vector3(
                 baseRotation.x + Random.Range(-2f, 2f),
@@ -270,6 +267,19 @@ internal class FloatingNotesField : MonoBehaviour
             Random.Range(-12f, 12f),
             yawTowardCenter + Random.Range(-8f, 8f),
             Random.Range(-20f, 20f));
+    }
+
+    private static Vector3 PositionOnMenuRing(float radius, float angleDegrees, float height)
+    {
+        var radians = angleDegrees * Mathf.Deg2Rad;
+
+        return new Vector3(Mathf.Sin(radians) * radius, height, Mathf.Cos(radians) * radius);
+    }
+
+    private static float YawTowardMenuCenter(Vector3 position)
+    {
+        var toCenter = new Vector3(-position.x, 0f, -position.z);
+        return Mathf.Atan2(toCenter.x, toCenter.z) * Mathf.Rad2Deg;
     }
 
     private static Vector3 RotateAroundY(Vector3 value, float degrees)
